@@ -7,6 +7,8 @@ import {
 import IUser from "../models/user.model";
 import { Observable } from "rxjs";
 import { map, delay } from "rxjs/operators";
+import { Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 
 @Injectable({
   providedIn: "root",
@@ -15,10 +17,16 @@ export class AuthService {
   private usersCollection: AngularFirestoreCollection<IUser>;
   public isAuthenticated$: Observable<boolean>;
   public isAuthenticatedWithDealy$: Observable<boolean>;
-  constructor(private auth: AngularFireAuth, private db: AngularFirestore) {
+  constructor(
+    private auth: AngularFireAuth,
+    private db: AngularFirestore,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {
     this.usersCollection = db.collection("users");
     this.isAuthenticated$ = auth.user.pipe(map((user) => !!user));
     this.isAuthenticatedWithDealy$ = this.isAuthenticated$.pipe(delay(1000));
+    this.route.data.subscribe(console.log);
   }
 
   public async createUser(userData: IUser) {
@@ -42,5 +50,13 @@ export class AuthService {
     await userCred.user.updateProfile({
       displayName: userData.name,
     });
+  }
+  public async logout($event?: Event) {
+    if ($event) {
+      $event.preventDefault();
+    }
+    await this.auth.signOut();
+
+    await this.router.navigateByUrl("/");
   }
 }
