@@ -8,40 +8,47 @@ import {
 import IClip from "../models/clip.model";
 import { AngularFireAuth } from "@angular/fire/compat/auth";
 import { switchMap, map } from "rxjs/operators";
-import { of } from "rxjs";
+import { of, BehaviorSubject, combineLatest } from "rxjs";
 import { AngularFireStorage } from "@angular/fire/compat/storage";
 @Injectable({
   providedIn: "root",
 })
 export class ClipService {
   public clipsColection: AngularFirestoreCollection<IClip>;
-  constructor(private db: AngularFirestore, private auth: AngularFireAuth,private storage:AngularFireStorage) {
+  constructor(
+    private db: AngularFirestore,
+    private auth: AngularFireAuth,
+    private storage: AngularFireStorage
+  ) {
     this.clipsColection = db.collection("clips");
   }
   createClip(data: IClip): Promise<DocumentReference<IClip>> {
     return this.clipsColection.add(data);
   }
-  getUserClips() {
-    return this.auth.user.pipe(
-      switchMap((user) => {
+  getUserClips(sort$: BehaviorSubject<string>) {
+    return combineLatest([this.auth.user, sort$]).pipe(
+      switchMap((values) => {
+        const [user, sort] = values;
         if (!user) {
           return of([]);
         }
-        const query = this.clipsColection.ref.where("uid", "==", user.uid);
+        const query = this.clipsColection.ref
+          .where("uid", "==", user.uid)
+          .orderBy("timestamp", sort === "1" ? "desc" : "asc");
         return query.get();
       }),
       map((snapshot) => (snapshot as QuerySnapshot<IClip>).docs)
     );
   }
-  updateClip(id:string,title:string){
+  updateClip(id: string, title: string) {
     return this.clipsColection.doc(id).update({
-      title      
-    })
+      title,
+    });
   }
-  async deleteClip(clip:IClip){
-    const clipRef = this.storage.ref(`clips/${clip.fileName}`)
-    await clipRef.delete()
+  async deleteClip(clip: IClip) {
+    const clipRef = this.storage.ref(`clips/${clip.fileName}`);
+    await clipRef.delete();
 
-    await this.clipsColection.doc(clip.docID).delete()
+    await this.clipsColection.doc(clip.docID).delete();
   }
 }

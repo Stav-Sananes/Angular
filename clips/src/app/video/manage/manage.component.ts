@@ -14,12 +14,16 @@ export class ManageComponent implements OnInit {
   videoOrder = "1";
   clips: IClip[] = [];
   activeClip: IClip | null = null;
+  sort$: BehaviorSubject<string>;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private clipService: ClipService,
     private modal: ModalService
-  ) {}
+  ) {
+    this.sort$=new BehaviorSubject(this.videoOrder)
+  
+  }
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params: Params) => {
@@ -57,13 +61,13 @@ export class ManageComponent implements OnInit {
       }
     });
   }
-  deleteClip($event:Event,clip:IClip){
-    $event.preventDefault()
-    this.clipService.deleteClip(clip)
-    this.clips.forEach((element,index)=>{
-      if(element.docID == clip.docID){
-        this.clips.splice(index,1)
+  deleteClip($event: Event, clip: IClip) {
+    $event.preventDefault();
+    this.clipService.deleteClip(clip);
+    this.clips.forEach((element, index) => {
+      if (element.docID == clip.docID) {
+        this.clips.splice(index, 1);
       }
-    })
+    });
   }
 }
