@@ -95,7 +95,6 @@ export class ClipService implements Resolve<IClip | null> {
       map(snapshot=>{
         const data = snapshot.data()
         if(!data){
-          this.router.navigate(['/'])
           return null
         }
         return data
