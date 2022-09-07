@@ -29,7 +29,7 @@ export class ManageComponent implements OnInit {
     this.route.queryParamMap.subscribe((params: Params) => {
       this.videoOrder = params.sort === "2" ? params.sort : "1";
     });
-    this.clipService.getUserClips().subscribe((docs) => {
+    this.clipService.getUserClips(this.sort$).subscribe((docs) => {
       this.clips = [];
 
       docs.forEach((doc) => {
@@ -69,5 +69,16 @@ export class ManageComponent implements OnInit {
         this.clips.splice(index, 1);
       }
     });
+  }
+  async copyToClipBoard($event:MouseEvent,docID:string|undefined){
+    $event.preventDefault()
+    if(!docID){
+      return
+    }
+    const url = `${location.origin}/clip/${docID}`
+
+    await navigator.clipboard.writeText(url)
+
+    alert("Link Copied!")
   }
 }
